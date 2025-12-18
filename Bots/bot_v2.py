@@ -2,6 +2,7 @@ import random
 from Bots.ChessBotList import register_chess_bot
 from ChessRules import move_is_valid
 from Bots.sas_constant import piece_values
+from Bots.RandomMoverBot import print_board_debug
 
 
 # =============================================================================
@@ -122,7 +123,6 @@ def unified_chess_bot(player_sequence, board, time_budget, **kwargs):
     capture_moves = []
     quiet_moves = []
 
-    
     # Hareket Vektörleri
     orth = [(-1, 0), (1, 0), (0, -1), (0, 1)] # Kale
     diag = [(-1, -1), (-1, 1), (1, -1), (1, 1)] # Fil
@@ -143,27 +143,27 @@ def unified_chess_bot(player_sequence, board, time_budget, **kwargs):
             
             candidate_moves = []
             
-            # --- MATCH CASE YAPISI (Python 3.10+) ---
+            
             match p_type:
-                case 'r':  # Kale (Rook)
+                case 'r':  
                     candidate_moves = get_sliding_moves(board, (x, y), orth, my_color, size_x, size_y)
                 
-                case 'b':  # Fil (Bishop)
+                case 'b':  
                     candidate_moves = get_sliding_moves(board, (x, y), diag, my_color, size_x, size_y)
                 
-                case 'q':  # Vezir (Queen)
+                case 'q':  
                     candidate_moves = get_sliding_moves(board, (x, y), orth + diag, my_color, size_x, size_y)
                 
-                case 'n':  # At (Knight)
+                case 'n':  
                     candidate_moves = get_stepping_moves(board, (x, y), knight_dirs, my_color, size_x, size_y)
                 
-                case 'k':  # Şah (King)
+                case 'k':  
                     candidate_moves = get_stepping_moves(board, (x, y), king_dirs, my_color, size_x, size_y)
                 
-                case 'p':  # Piyon (Pawn)
+                case 'p':  
                     candidate_moves = get_pawn_moves(board, (x, y), my_color, size_x, size_y)
                 
-                case _:    # Bilinmeyen bir taş tipi varsa (Önlem amaçlı)
+                case _:    
                     continue
             
             # --- VALİDASYON VE SINIFLANDIRMA ---
@@ -179,56 +179,44 @@ def unified_chess_bot(player_sequence, board, time_budget, **kwargs):
                     else:
                         quiet_moves.append(move)
 
-    # --- HAMLE SEÇİMİ ---
 
-    # Basit Puanlama Sözlüğü
+    # --- HAMLE SEÇİMİ ---
     piece_values = {
-        'p': 10,  # Piyon
-        'n': 30,  # At
-        'b': 30,  # Fil
-        'r': 50,  # Kale
-        'q': 90,  # Vezir
-        'k': 900  # Şah
+        'p': 100,  
+        'n': 500,  
+        'b': 320,  
+        'r': 330,  
+        'q': 900,  
+        'k': 20000 
     }
+   
 
     def get_piece_value(piece):
-        """Taşın puanını döndürür"""
+        #Return the value of the piece
         if is_square_empty(piece):
             return 0
         p_type = piece.type if hasattr(piece, "type") else piece[0]
         return piece_values.get(p_type, 0)
-
-    # 1. EN İYİ TAŞI YE (Capture Logic)
-    if capture_moves:
+    
+    # Burada get_best_capture fonksiyonu en yuksek value'lu capture move'i dondurur.
+    def get_best_capture(capture_moves, quiet_moves, board):
         best_capture = None
         max_score = -1
-
+        
         for move in capture_moves:
-            # Hedef karedeki taşı bul
             target_pos = move[1]
             target_piece = board[target_pos[0], target_pos[1]]
-            
-            # Puanı hesapla
             score = get_piece_value(target_piece)
-            
-            # En yüksek puanlıyı sakla
             if score > max_score:
                 max_score = score
                 best_capture = move
-        
-        print(f"En iyi yeme hamlesi: {best_capture} (Puan: {max_score})")
-        return best_capture
-    
-    # 2. Yeme yoksa Rastgele Oyna (Şimdilik)
-    if quiet_moves:
-        return random.choice(quiet_moves)
-    
-    # 3. Hiç Hamle Yoksa (Mat veya Pat)
-    print(f"Bot ({my_color}) yapacak hamle bulamadı! Oyun bitmiş olabilir.")
-    return ((0,0), (0,0)) 
+        if best_capture:
+            return best_capture
+        else:
+            return random.choice(quiet_moves)
 
-# =============================================================================
-# BOTU SİSTEME KAYDET
-# =============================================================================
+    return get_best_capture(capture_moves, quiet_moves, board)
 
+
+# Botu kaydetme
 register_chess_bot("UnifiedBot", unified_chess_bot)
