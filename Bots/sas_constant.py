@@ -6,7 +6,7 @@ import numpy as np
 MATE_SCORE = 1000000000
 
 # Constants for evaluation
-piece_values = {
+PIECE_VALUES = {
     "p": 100,
     "r": 500,
     "n": 320,
@@ -14,6 +14,13 @@ piece_values = {
     "q": 900,
     "k": 20000
 }
+
+
+# Move directions
+ORTHOGONAL = [(-1, 0), (1, 0), (0, -1), (0, 1)] # Rook
+DIAGONAL = [(-1, -1), (-1, 1), (1, -1), (1, 1)] # Bishop
+KNIGHT_DIRS = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1)] # Knight
+KING_DIRS = ORTHOGONAL + DIAGONAL # King
 
 # Piece-square tables for evaluation
 pawn_evaluation_black = [
