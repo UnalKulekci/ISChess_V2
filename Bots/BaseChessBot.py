@@ -27,5 +27,5 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
 
     return (0,0), (0,0)
 
-#   Example how to register the function
+#  Example how to register the function
 register_chess_bot("PawnMover", chess_bot)
